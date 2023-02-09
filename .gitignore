@@ -1,0 +1,15 @@
+# default
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# dotenv
+.env
+
+# typescript
+dist/
+build/
+
+# tmp
+.tmp/
