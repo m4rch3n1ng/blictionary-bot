@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js"
 import { rm } from "node:fs/promises"
-import { collectMessages, getTotalChannelCount } from "./collect/index.js"
-import { writeProgress } from "./utils.js"
+import collectMessages from "./collect/index.js"
+import { writeProgress, getTotalChannelCount } from "./collect/utils.js"
 
 let collectIsRunning = new Map<string, boolean>
 export const collect = {

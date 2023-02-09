@@ -1,33 +1,16 @@
-import type { Collection, Message, MessageManager, TextChannel } from "discord.js"
+import { AllowedThreadTypeForTextChannel, AnyThreadChannel, Collection, GuildTextThreadManager, Message, MessageManager } from "discord.js"
+import * as dotenv from "dotenv"
+import undici from "undici"
+import PQueue from "p-queue"
 import $7z from "7zip-min"
 import { writeFile, mkdir, rm } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { client } from "../index.js"
-import { writeProgress, __dirname } from "../utils.js"
-import undici from "undici"
-import PQueue from "p-queue"
-import * as dotenv from "dotenv"
+import { __dirname } from "../utils.js"
+import { writeProgress, hasPerms, getTotalChannelCount } from "./utils.js"
 dotenv.config({ path: ".env" })
 
-async function hasPerms ( channel: TextChannel  ) {
-	try {
-		await channel.messages.fetch({ limit: 1 })
-		return true
-	} catch ( error ) {
-		return false
-	}
-}
-
-export async function getTotalChannelCount ( guildId: string ): Promise<number> {
-	const guild = client.guilds.cache.get(guildId)!
-	const channels = await guild.channels.fetch()
-
-	const textChannels = [ ...channels.values() ].filter(( channel ) => channel && channel.type === 0) as TextChannel[]
-	const validChannels = await Promise.all(textChannels.map(( channel ) => hasPerms(channel)))
-	return validChannels.filter(( val ) => val).length
-}
-
-export async function collectMessages ( guildId: string, message: Message<boolean> ): Promise<string> {
+export default async function collectMessages ( guildId: string, message: Message<boolean> ): Promise<string> {
 	const guild = client.guilds.cache.get(guildId)!
 	const channels = await guild.channels.fetch()
 
@@ -43,12 +26,16 @@ export async function collectMessages ( guildId: string, message: Message<boolea
 	await Promise.all(
 		[ ...channels.values() ].map(async ( channel ) => {
 			if (!channel || channel.type !== 0 || !await hasPerms(channel)) return
-			const { threads } = await channel.threads.fetch({}, { cache: false })
 
-			if (threads.size > 0) {
+			const { threads: activeThreads } = await channel.threads.fetchActive(false)
+			const archivedThreads = await fetchAllArchivedThreads(channel.threads)
+
+			const allThreads = new Collection([ ...activeThreads, ...archivedThreads ])
+
+			if (allThreads.size > 0) {
 				await Promise.all(
-					[ ...threads.values() ].map(async ( thread ) => {
-						const messages = await fetchAll(thread.messages, undefined, channel.name)
+					[ ...allThreads.values() ].map(async ( thread ) => {
+						const messages = await fetchAllMessages(thread.messages, undefined, channel.name)
 						const threadJSON = {
 							name: thread.name,
 							channelName: channel.name,
@@ -62,7 +49,7 @@ export async function collectMessages ( guildId: string, message: Message<boolea
 				)
 			}
 
-			const messages = await fetchAll(channel.messages, undefined, channel.name)
+			const messages = await fetchAllMessages(channel.messages, undefined, channel.name)
 
 			const channelJSON = {
 				name: channel.name,
@@ -103,7 +90,20 @@ interface interCommand {
 	options: string[]
 }
 
-async function fetchAll ( messageManager: MessageManager, id?: string, name?: string ): Promise<(interMessage|interCommand)[]> {
+type ThreadManager = GuildTextThreadManager<AllowedThreadTypeForTextChannel>
+async function fetchAllArchivedThreads ( threadManager: ThreadManager, id?: AnyThreadChannel<boolean> ): Promise<Collection<string, AnyThreadChannel>> {
+	const { threads } = await threadManager.fetchArchived({ limit: 100, before: id })
+
+	if (threads.size < 100) {
+		return threads
+	} else {
+		const lastThread = threads.at(99)
+		const restThreads = await fetchAllArchivedThreads(threadManager, lastThread)
+		return new Collection([ ...threads, ...restThreads ])
+	}
+}
+
+async function fetchAllMessages ( messageManager: MessageManager<true>, id?: string, name?: string ): Promise<(interMessage|interCommand)[]> {
 	const allCollection = await messageManager.fetch({ limit: 100, before: id })
 
 	if (allCollection.size < 100) {
@@ -112,26 +112,27 @@ async function fetchAll ( messageManager: MessageManager, id?: string, name?: st
 		const lastMsg = allCollection.at(99)
 		const [ arr, rest ] = await Promise.all([
 			format(allCollection),
-			fetchAll(messageManager, lastMsg!.id, name)
+			fetchAllMessages(messageManager, lastMsg!.id, name)
 		])
 		return [ ...arr, ...rest ]
 	}
 }
 
 const queue = new PQueue({ concurrency: 1 })
-const collectCommands: string[] = JSON.parse(process.env.DISCORD_COLLECT_COMMANDS!)
+const commandsToCollect: string[] = JSON.parse(process.env.DISCORD_COLLECT_COMMANDS!)
 async function format ( collection: Collection<string, Message> ): Promise<(interMessage|interCommand)[]> {
 	const filtered: (interMessage|interCommand)[] = []
 
 	for (const message of collection.values()) {
-		if (message.type === 0 && message.content !== "" && !message.author.bot) {
+		if ((message.type === 0 || message.type === 19) && message.content !== "" && !message.author.bot) {
 			filtered.push({
 				type: "message",
 				author: `${message.author.username}#${message.author.discriminator}`,
 				content: message.content,
 				time: new Date(message.createdTimestamp)
 			})
-		} else if (message.type === 20 && message.interaction && `${message.author.username}#${message.author.discriminator}` === process.env.DISCORD_ESMBOT_TAG && collectCommands.includes(message.interaction.commandName)) {
+		} else if (message.type === 19) {
+		} else if (message.type === 20 && message.interaction && `${message.author.username}#${message.author.discriminator}` === process.env.DISCORD_ESMBOT_TAG && commandsToCollect.includes(message.interaction.commandName)) {
 			const options = await queue.add(() => getInteractionData(message.channelId, message.id))
 			if (options && options.length > 0) {
 				filtered.push({
