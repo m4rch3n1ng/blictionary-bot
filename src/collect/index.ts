@@ -72,6 +72,7 @@ export default async function collectMessages ( guildId: string, message: Messag
 		], ( error ) => error ? reject(error) : resolve())
 	))
 
+	if (false)
 	await rm(path, { recursive: true })
 	return zipPath
 }
@@ -161,7 +162,8 @@ async function getInteractionData ( channelID: string, messageID: string ): Prom
 	// https://discord.com/api/v9/channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/interaction-data
 	const request = await undici.request(`https://discord.com/api/v9/channels/${channelID}/messages/${messageID}/interaction-data`,	{
 		headers: {
-			Authorization: process.env.DISCORD_USR_TOKEN!
+			Authorization: process.env.DISCORD_USR_TOKEN!,
+			"X-Super-Properties": process.env["X-SUPER-PROPERTIES"]!
 		}}
 	)
 
