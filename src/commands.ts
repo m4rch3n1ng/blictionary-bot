@@ -16,10 +16,6 @@ export const collect = {
 
 		const message = await interaction.deferReply({ fetchReply: true })
 		await interaction.editReply(writeProgress(0, 0, totalChannels))
-		setTimeout(async () => {
-			await message.edit({ content: "edit" })
-			console.log("edited message!!")
-		}, 20 * 60 * 1000)
 
 		const zipPath = await collectMessages(guildId, message)
 		await message.edit({ content: `collected messages from ${totalChannels} channels`, files: [ zipPath ] })
