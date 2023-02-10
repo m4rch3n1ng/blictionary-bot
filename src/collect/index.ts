@@ -89,10 +89,11 @@ interface interMessage {
 }
 
 interface interCommand {
-	type: "command",
-	author: string,
-	command: string,
+	type: "command"
+	author: string
+	command: string
 	options: string[]
+	time: Date
 }
 
 async function fetchAllArchivedThreads ( threadManager: ThreadManager, id?: AnyThreadChannel<boolean> ): Promise<Collection<string, AnyThreadChannel>> {
@@ -143,12 +144,11 @@ async function format ( collection: Collection<string, Message> ): Promise<(inte
 					type: "command",
 					author: `${message.interaction.user.username}#${message.interaction.user.discriminator}`,
 					command: message.interaction.commandName,
-					options: options
+					options: options,
+					time: new Date(message.createdTimestamp)
 				})
 			}
 		}
-
-		if (message.type === 20) console.log(message)
 	}
 
 	return filtered
