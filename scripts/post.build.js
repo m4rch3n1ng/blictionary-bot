@@ -29,7 +29,7 @@ async function main () {
 		dependencies: pkg.dependencies,
 		type: "module",
 		private: true
-	}, null, "\t"))
+	}, null, "\t") + "\n")
 }
 
 main()
