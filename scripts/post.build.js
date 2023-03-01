@@ -7,6 +7,7 @@ import { existsSync } from "node:fs"
 async function main () {
 	if (!existsSync(joinPath(__dirname, "build"))) await mkdir(joinPath(__dirname, "build"))
 	await cp(joinPath(__dirname, "dist"), joinPath(__dirname, "build", "src"), { recursive: true })
+	await cp(joinPath(__dirname, "utils"), joinPath(__dirname, "build", "utils"), { recursive: true })
 
 	await copyFile(joinPath(__dirname, ".env"), joinPath(__dirname, "build", ".env"))
 	await copyFile(joinPath(__dirname, "LICENSE"), joinPath(__dirname, "build", "LICENSE"))
@@ -24,7 +25,7 @@ async function main () {
 		main: "./src/index.js",
 		scripts: {
 			start: "node src/index.js",
-			register: "node src/register.js"
+			register: "node utils/register.js"
 		},
 		dependencies: pkg.dependencies,
 		type: "module",
