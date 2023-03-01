@@ -57,7 +57,7 @@ export async function makeEmbed ( interaction: ChatInputCommandInteraction ): Pr
 
 function _makePronounciation ( inp: Entry["pronounciation"] ) {
 	const note = inp.note ? `, ${inp.note}` : ""
-	return `RP \`${inp.rp}\`, US \`${inp.us}\`${note}`
+	return `R.P. \`${inp.rp}\`, U.S. \`${inp.us}\`${note}`
 }
 
 function _makeDefinitions ( inp: Entry["definitions"] ) {
