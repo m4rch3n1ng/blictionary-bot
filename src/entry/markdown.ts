@@ -1,4 +1,4 @@
-import type { smallMeta } from "./entry"
+import type { smallMeta } from "./entry.js"
 
 export function initMark ( allMeta: smallMeta[] ) {
 	return function marked ( txt: string ) {
