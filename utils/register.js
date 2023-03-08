@@ -8,6 +8,13 @@ const collect = new SlashCommandBuilder()
 	.setName("collect")
 	.setDescription("collect all messages")
 
+const commands = await rest.get(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID))
+await Promise.all(
+	commands.map(( command ) => (
+		rest.delete(Routes.applicationCommand(process.env.DISCORD_CLIENT_ID, command.id))
+	))
+)
+
 await rest.put(
 	Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
 	{ body: [ collect.toJSON() ] }
