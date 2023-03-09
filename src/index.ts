@@ -3,13 +3,13 @@ import * as dotenv from "dotenv"
 dotenv.config({ path: ".env" })
 import { existsSync } from "node:fs"
 import { mkdir } from "node:fs/promises"
-import { collect } from "./commands.js"
+import * as importCommands from "./commands.js"
 
 const token = process.env.DISCORD_BOT_TOKEN
 export const client = new Client({ intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] })
 
-const commands = new Collection<string, typeof collect>()
-commands.set("collect", collect)
+const commands = new Collection<string, typeof importCommands.collect>()
+Object.values(importCommands).forEach(( cmd ) => commands.set(cmd.name, cmd))
 
 client.on(Events.InteractionCreate, async ( interaction ) => {
 	if (!interaction.isChatInputCommand()) return

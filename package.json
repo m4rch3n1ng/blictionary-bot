@@ -9,7 +9,7 @@
 		"build": "tsc -b",
 		"dev": "tsc -b -w",
 		"make": "node scripts/pre.build.js && tsc -b && node scripts/post.build.js",
-		"register": "node utils/register.js",
+		"register": "node dist/register.js",
 		"start": "node dist/index.js"
 	},
 	"dependencies": {

@@ -5,6 +5,7 @@ import { writeProgress, getTotalChannelCount } from "./collect/utils.js"
 
 let collectIsRunning = new Map<string, boolean>
 export const collect = {
+	name: "collect",
 	data: new SlashCommandBuilder().setName("collect").setDescription("collect all messages"),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
 		if (!interaction.guild) return interaction.reply("error") // todo error
