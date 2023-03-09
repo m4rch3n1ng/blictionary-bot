@@ -1,6 +1,5 @@
 import { AnyThreadChannel, Collection, Message, MessageManager, ThreadManager } from "discord.js"
 import * as dotenv from "dotenv"
-import undici from "undici"
 import PQueue from "p-queue"
 import $7z from "7zip-min"
 import { writeFile, mkdir, rm } from "node:fs/promises"
@@ -165,14 +164,14 @@ interface errorJson {
 
 async function getInteractionData ( channelID: string, messageID: string ): Promise<string[] | null> {
 	// https://discord.com/api/v9/channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/interaction-data
-	const request = await undici.request(`https://discord.com/api/v9/channels/${channelID}/messages/${messageID}/interaction-data`,	{
+	const request = await fetch(`https://discord.com/api/v9/channels/${channelID}/messages/${messageID}/interaction-data`,	{
 		headers: {
 			Authorization: process.env.DISCORD_USR_TOKEN!,
 			"X-Super-Properties": process.env["X-SUPER-PROPERTIES"]!
 		}}
 	)
 
-	const json = await request.body.json() as (errorJson | thingJson)
+	const json = await request.json() as (errorJson | thingJson)
 
 	if ("message" in json && json.message === "You are being rate limited." && typeof json.retry_after === "number" ) {
 		let options: string[] | null = []
