@@ -33,10 +33,10 @@ export const collect = {
 	}
 }
 
-export const entry = {
-	name: "entry",
+export const blictionary = {
+	name: "blictionary",
 	data: new SlashCommandBuilder()
-		.setName("entry")
+		.setName("blictionary")
 		.setDescription("collect all messages")
 		.addStringOption(( option ) => option.setName("word").setDescription("word or article id").setRequired(true)),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
