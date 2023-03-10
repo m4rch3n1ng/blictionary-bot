@@ -1,12 +1,16 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js"
+import { SlashCommandBuilder } from "@discordjs/builders"
+import type { ChatInputCommandInteraction } from "discord.js"
 import { rm } from "node:fs/promises"
 import collectMessages from "./collect/index.js"
 import { writeProgress, getTotalChannelCount } from "./collect/utils.js"
+import { makeEmbed } from "./entry/entry.js"
 
 let collectIsRunning = new Map<string, boolean>
 export const collect = {
 	name: "collect",
-	data: new SlashCommandBuilder().setName("collect").setDescription("collect all messages"),
+	data: new SlashCommandBuilder()
+		.setName("collect")
+		.setDescription("collect all messages"),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
 		if (!interaction.guild) return interaction.reply("error") // todo error
 		if (collectIsRunning.get(interaction.guild.id)) return interaction.reply("already collecting on this server")
@@ -23,5 +27,25 @@ export const collect = {
 
 		await rm(zipPath)
 		collectIsRunning.set(interaction.guild.id, false)
+	}
+}
+
+export const blictionary = {
+	name: "blictionary",
+	data: new SlashCommandBuilder()
+		.setName("blictionary")
+		.setDescription("collect all messages")
+		.addStringOption(( option ) => option.setName("word").setDescription("word or article id").setRequired(true)),
+	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
+		try {
+			const exampleEmbed = await makeEmbed(interaction)
+			interaction.reply({ embeds: [ exampleEmbed ]})
+		} catch ( e: unknown ) {
+			if (e instanceof Error) {
+				interaction.reply({ content: `failed ; ${e.message}` })
+			} else {
+				interaction.reply({ content: "failed" })
+			}
+		}
 	}
 }
