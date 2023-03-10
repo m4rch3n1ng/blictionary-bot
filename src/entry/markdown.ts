@@ -18,3 +18,22 @@ export function initMark ( allMeta: smallMeta[] ) {
 		return found
 	}	
 }
+
+export function wordClassToString ( wordClass: string | string[] ) {
+	if (!Array.isArray(wordClass)) return `*${wordClass}*`
+
+	let string = ""
+	for (let i = 0; i < wordClass.length; i++) {
+		string += `*${wordClass[i]}*`
+
+		if (i < wordClass.length - 1 && wordClass.length >= 3) {
+			string += ", "
+		}
+		
+		if (i == wordClass.length - 2) {
+			string += wordClass.length === 2 ? " and " : "and "
+		}
+	}
+
+	return string
+}
