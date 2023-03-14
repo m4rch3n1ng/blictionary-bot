@@ -10,10 +10,9 @@ async function main () {
 
 	await copyFile(joinPath(__dirname, ".env"), joinPath(__dirname, "build", ".env"))
 	await copyFile(joinPath(__dirname, "LICENSE"), joinPath(__dirname, "build", "LICENSE"))
-	await writeFile(
-		joinPath(__dirname, "build", "ecosystem.config.cjs"),
-		"module.exports = { apps : [ { name: \"discord-mayibot\", script: \"npm install && npm start\" }]}\n"
-	)
+
+	await copyFile(joinPath(__dirname, "scripts", "start.sh"), joinPath(__dirname, "build", "start.sh"))
+	await copyFile(joinPath(__dirname, "scripts", "stop.sh"), joinPath(__dirname, "build", "stop.sh"))
 
 	await writeFile(joinPath(__dirname, "build", "package.json"), JSON.stringify({
 		name: pkg.name,
