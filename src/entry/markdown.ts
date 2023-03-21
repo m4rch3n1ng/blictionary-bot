@@ -1,6 +1,6 @@
-import type { smallMeta } from "./entry.js"
+import type { smallEntry } from "./entry.js"
 
-export function initMark ( allMeta: smallMeta[] ) {
+export function initMark ( allEntries: smallEntry[] ) {
 	return function marked ( txt: string ) {
 		const modTxt = txt.replace(/\[\[([^\n]+?), ([^\n]+?\.)\]\]/g, replaceSelfLink)
 		return modTxt
@@ -12,9 +12,9 @@ export function initMark ( allMeta: smallMeta[] ) {
 	}
 
 	function findEntry ( word: string, wordClass: string ) {
-		const found = allMeta.find(( meta ) => 
-			meta.word === word && ( Array.isArray(meta.class) ? meta.class.includes(wordClass) : meta.class === wordClass )
-		)
+		const found = allEntries.find(( entry ) => (
+			entry.word === word && ( Array.isArray(entry.class) ? entry.class.includes(wordClass) : entry.class === wordClass )
+		))
 		return found
 	}	
 }

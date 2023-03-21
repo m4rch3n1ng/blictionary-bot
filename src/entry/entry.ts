@@ -52,38 +52,38 @@ export async function makeEmbed ( interaction: ChatInputCommandInteraction ): Pr
 	if (!word) throw new Error("no option specified")
 
 	const query = word.value as string
-	const allMeta = await fetchAllMeta()
+	const allEntries = await fetchAllEntries()
 
 	// todo implement search
 	if (/^\d+$/.test(query)) {
 		const id = query
 		const entry = await getEntry(id)
 
-		return _makeEmbed(allMeta, entry)
+		return _makeEmbed(allEntries, entry)
 	} else {
-		const extraMeta = _extSmallMeta(allMeta)
+		const extraEntries = extSmallEntries(allEntries)
 
-		const allFind = extraMeta.filter(({ word }) => word === query)
+		const allFind = extraEntries.filter(({ word }) => word === query)
 		if (allFind.length === 1 && allFind[0]) {
 			const find = allFind[0]
 			if (find.sub) {
-				return _makeSubEmbed(allMeta, find)
+				return _makeSubEmbed(allEntries, find)
 			} else {
 				const entry = await getEntry(find.id)
-				return _makeEmbed(allMeta, entry)
+				return _makeEmbed(allEntries, entry)
 			}
 		}
 
-		const filteredMeta = fuzzy(extraMeta, query)
-		const bestResult = filteredMeta[0]
+		const filteredEntries = fuzzy(extraEntries, query)
+		const bestResult = filteredEntries[0]
 
 		if (!bestResult) throw new Error("no match")
 
 		if (bestResult.sub) {
-			return _makeSubEmbed(allMeta, bestResult)
+			return _makeSubEmbed(allEntries, bestResult)
 		} else {
 			const entry = await getEntry(bestResult.id)
-			return _makeEmbed(allMeta, entry)
+			return _makeEmbed(allEntries, entry)
 		}
 	}
 }
@@ -92,14 +92,14 @@ export interface subSubEntry extends SubEntry {
 	sub: true
 }
 
-export interface subSmallMeta extends smallMeta {
+export interface subSmallEntry extends smallEntry {
 	sub: false
 }
 
 // todo comments lmao
-function _extSmallMeta ( meta: subMeta[] ): (subSmallMeta | subSubEntry)[] {
-	const allSmall: (smallMeta & { sub: false })[] = meta.map(( meta ) => ({ ...meta, sub: false }))
-	const allSub: (SubEntry & { sub: true })[] = (meta.map(({ sub }) => sub).filter(( sub ) => sub).flat() as SubEntry[]).map(( sub ) => ({ ...sub, sub: true }))
+function extSmallEntries ( allEntries: smallSubEntry[] ): (subSmallEntry | subSubEntry)[] {
+	const allSmall: (smallEntry & { sub: false })[] = allEntries.map(( entry ) => ({ ...entry, sub: false }))
+	const allSub: (SubEntry & { sub: true })[] = (allEntries.map(({ sub }) => sub).filter(( sub ) => sub).flat() as SubEntry[]).map(( sub ) => ({ ...sub, sub: true }))
 
 	return [ ...allSmall, ...allSub ]
 }
@@ -130,8 +130,8 @@ function _makeDefinitions ( inp: Entry["definitions"] ) {
 	return defs.join("\n")
 }
 
-async function _makeSubEmbed ( allMeta: smallMeta[], entry: SubEntry ) {
-	const marked = initMark(allMeta)
+async function _makeSubEmbed ( allEntries: smallEntry[], entry: SubEntry ) {
+	const marked = initMark(allEntries)
 
 	return new EmbedBuilder()
 		.setColor(0x008080)
@@ -145,8 +145,8 @@ async function _makeSubEmbed ( allMeta: smallMeta[], entry: SubEntry ) {
 		.setTimestamp()
 }
 
-async function _makeEmbed ( allMeta: smallMeta[], entry: Entry ): Promise<EmbedBuilder> {
-	const marked = initMark(allMeta)
+async function _makeEmbed ( allEntries: smallEntry[], entry: Entry ): Promise<EmbedBuilder> {
+	const marked = initMark(allEntries)
 
 	const pronounciationTxt = _makePronounciation(entry.pronounciation)
 	const definitionTxt = _makeDefinitions(entry.definitions)
@@ -173,20 +173,20 @@ async function getEntry ( id: string ): Promise<Entry> {
 	return entry
 }
 
-export interface smallMeta {
+export interface smallEntry {
 	id: string
 	word: string
 	class: string | string[],
 }
 
-interface subMeta extends smallMeta {
+interface smallSubEntry extends smallEntry {
 	sub?: SubEntry[]
 }
 
-export async function fetchAllMeta (): Promise<subMeta[]> {
+export async function fetchAllEntries (): Promise<smallSubEntry[]> {
 	const path = "entries"
 	const all = await readdir(path)
-	const allMeta: (subMeta)[] = await Promise.all(
+	const allEntries: (smallSubEntry)[] = await Promise.all(
 		all.filter(( fileName ) => /\.json$/.test(fileName)).map(async ( fileName ) => {
 			const filePath = joinPath(path, fileName)
 			const content = await readFile(filePath)
@@ -200,5 +200,5 @@ export async function fetchAllMeta (): Promise<subMeta[]> {
 		})
 	)
 
-	return allMeta
+	return allEntries
 }

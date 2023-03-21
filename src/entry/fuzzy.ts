@@ -1,13 +1,14 @@
 // keep in sync with https://github.com/m4rch3n1ng/blictionary/blob/fuzzy/src/lib/fuzzy.ts
 
-import type { subSmallMeta, subSubEntry } from "./entry"
+import type { subSmallEntry, subSubEntry } from "./entry"
 
-export function fuzzy ( allMeta: (subSubEntry | subSmallMeta)[], search: string ): (subSubEntry | subSmallMeta)[] {
+export function fuzzy ( allEntries: (subSubEntry | subSmallEntry)[], search: string ): (subSubEntry | subSmallEntry)[] {
 	const spl = splitSearchString(search)
 	if (!spl) return []
 
 	const wordScore = initWordScoring(spl.search)
-	const allScores: ((subSubEntry | subSmallMeta) & { score: number })[] = allMeta.map(( meta ) => ({ ...meta, score: wordScore.score(meta.word, meta.class) }))
+	const allScores: ((subSubEntry | subSmallEntry) & { score: number })[] = allEntries
+		.map(( entry ) => ({ ...entry, score: wordScore.score(entry.word, entry.class) }))
 	return allScores.filter(({ score }) => score !== 0).sort(( m1, m2 ) => m2.score - m1.score)
 }
 
