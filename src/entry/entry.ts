@@ -74,7 +74,7 @@ export async function makeEmbed ( interaction: ChatInputCommandInteraction ): Pr
 			}
 		}
 
-		const filteredEntries = fuzzy(extraEntries, query)
+		const filteredEntries = fuzzy<(subSubEntry | subSmallEntry)>(query, extraEntries)
 		const bestResult = filteredEntries[0]
 
 		if (!bestResult) throw new Error("no match")
@@ -183,6 +183,7 @@ interface smallSubEntry extends smallEntry {
 	sub?: SubEntry[]
 }
 
+// add cache ref https://github.com/m4rch3n1ng/blictionary/pull/8
 export async function fetchAllEntries (): Promise<smallSubEntry[]> {
 	const path = "entries"
 	const all = await readdir(path)
