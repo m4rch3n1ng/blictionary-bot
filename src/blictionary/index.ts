@@ -1,7 +1,7 @@
 import type { APIEmbed, ChatInputCommandInteraction, EmbedBuilder } from "discord.js"
+import { extendSmallEntries, fetchAllEntries, getEntry, type fullSmallEntry } from "./entry.js"
 import { makeEmbed, makeSubEmbed } from "./markdown.js"
 import { fuzzy } from "./fuzzy.js"
-import { extendSmallEntries, fetchAllEntries, fullSmallEntry, getEntry } from "./entry.js"
 
 export async function makeEntry ( interaction: ChatInputCommandInteraction ): Promise<APIEmbed | EmbedBuilder> {
 	const word = interaction.options.get("word")
