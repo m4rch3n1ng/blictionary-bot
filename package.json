@@ -14,6 +14,7 @@
 	},
 	"dependencies": {
 		"7zip-min": "^1.4.4",
+		"cheap-watch": "^1.0.4",
 		"discord.js": "^14.9.0",
 		"dotenv": "^16.0.3",
 		"p-queue": "^7.3.4"

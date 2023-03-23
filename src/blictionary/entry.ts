@@ -1,7 +1,8 @@
 // keep in partial sync with https://github.com/m4rch3n1ng/blictionary/blob/fuzzy/src/lib/entry.ts
 
+import CheapWatch from "cheap-watch"
 import { join as joinPath } from "node:path"
-import { existsSync } from "node:fs"
+import { existsSync, type Stats } from "node:fs"
 import { readdir, readFile } from "node:fs/promises"
 
 export interface Entry {
@@ -59,48 +60,113 @@ export interface smallEntry {
 	id: string
 	word: string
 	class: string | string[],
+	sub?: SubEntry[]
 }
 
-// add cache ref https://github.com/m4rch3n1ng/blictionary/pull/8
-export async function fetchAllEntries (): Promise<smallEntrySubEntry[]> {
+function entryCache () {
 	const path = "entries"
-	const all = await readdir(path)
-	const allEntries: (smallEntrySubEntry)[] = await Promise.all(
-		all.filter(( fileName ) => /\.json$/.test(fileName)).map(async ( fileName ) => {
-			const filePath = joinPath(path, fileName)
+	const allEntryMap = new Map<string, smallEntry>
+	let allEntries: smallEntry[] | null = null
+
+	const watcher = new CheapWatch({ dir: path, filter: watchFilter })
+	watcher.init()
+	watcher.on("+", plus)
+	watcher.on("-", minus)
+
+	function watchFilter ({ path, stats }: { path: string, stats: Stats }) {
+		return isJSON(path) && stats.isFile()
+	}
+
+	async function plus ({ path: fileName }: { path: string }) {
+		const id = fileName.slice(0, -5)
+		const filePath = joinPath(path, fileName)
+		await hitOnce(filePath, id)
+		mapToArray()
+	}
+
+	function minus ({ path: fileName }: { path: string }) {
+		const id = fileName.slice(0, -5)
+		allEntryMap.delete(id)
+	}
+
+
+	// todo check for id
+	// todo function get id
+	function isJSON ( name: string ) {
+		return /\.json$/.test(name)
+	}
+
+	// todo catch json errors
+	async function readSmallEntry ( filePath: string, id: string ): Promise<smallEntry> {
+		try {
 			const content = await readFile(filePath)
 			const entry: Entry = JSON.parse(content.toString())
 			return {
-				id: fileName.slice(0, -5),
+				id,
 				word: entry.word,
 				class: entry.class,
 				sub: entry.sub
 			}
-		})
-	)
+		} catch ( e: any ) {
+			if (e.code === "EMFILE") {
+				return readSmallEntry(filePath, id)
+			} else {
+				throw e
+			}
+		}
+	}
 
-	return allEntries
+	function mapToArray (): smallEntry[] {
+		allEntries = [ ...allEntryMap.values() ].sort(( a, b ) => +a.id - +b.id)
+		return allEntries
+	}
+
+	async function hitOnce ( filePath: string, id: string ) {
+		const smallEntry = await readSmallEntry(filePath, id)
+		allEntryMap.set(smallEntry.id, smallEntry)
+	}
+
+	async function hit (): Promise<smallEntry[]> {
+		const all = await readdir(path)
+		await Promise.all(
+			all.filter(isJSON).map(( fileName ) => {
+				const filePath = joinPath(path, fileName)
+				const id = fileName.slice(0, -5)
+				return hitOnce(filePath, id)
+			})
+		)
+
+		return mapToArray()
+	}
+
+	return {
+		async get (): Promise<smallEntry[]> {
+			if (allEntries) {
+				return allEntries
+			} else {
+				return hit()
+			}
+		}
+	}
 }
 
-export type fullSmallEntry = subSubEntry | subSmallEntry
+export const cache = entryCache()
 
-interface subSubEntry extends SubEntry {
-	sub: true
+
+export type allSmallEntry = flatSubEntry | flatSmallEntry
+
+interface flatSubEntry extends SubEntry {
+	isSub: true
 }
 
-interface subSmallEntry extends smallEntry {
-	sub: false
+interface flatSmallEntry extends smallEntry {
+	isSub: false
 }
 
-// todo comments lmao
-export function extendSmallEntries ( allEntries: smallEntrySubEntry[] ): (subSmallEntry | subSubEntry)[] {
-	const allSmall: (smallEntry & { sub: false })[] = allEntries.map(( entry ) => ({ ...entry, sub: false }))
-	const allSub: (SubEntry & { sub: true })[] = (allEntries.map(({ sub }) => sub).filter(( sub ) => sub).flat() as SubEntry[])
-		.map(( sub ) => ({ ...sub, sub: true }))
+export function flatSubEntries ( allEntries: smallEntry[] ): allSmallEntry[] {
+	const allSmall: flatSmallEntry[] = allEntries.map(( entry ) => ({ ...entry, isSub: false }))
+	const allSub: flatSubEntry[] = (allEntries.map(({ sub }) => sub).filter(( sub ) => sub).flat() as SubEntry[])
+		.map(( sub ) => ({ ...sub, isSub: true }))
 
 	return [ ...allSmall, ...allSub ]
-}
-
-interface smallEntrySubEntry extends smallEntry {
-	sub?: SubEntry[]
 }
