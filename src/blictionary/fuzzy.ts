@@ -1,3 +1,5 @@
+// keep in sync with https://github.com/m4rch3n1ng/blictionary/blob/fuzzy/src/lib/search/fuzzy.ts
+
 interface minimumEntry {
 	word: string
 	class: string | string[]

@@ -4,7 +4,7 @@ import { rm } from "node:fs/promises"
 import collectMessages from "./collect/index.js"
 import { writeProgress, getTotalChannelCount } from "./collect/utils.js"
 import { isMember, isThread, isChannel } from "./utils.js"
-import { makeEmbed } from "./entry/entry.js"
+import { makeEntry } from "./blictionary/index.js"
 
 let collectIsRunning = new Map<string, boolean>
 export const collect = {
@@ -41,7 +41,7 @@ export const blictionary = {
 		.addStringOption(( option ) => option.setName("word").setDescription("word or article id").setRequired(true)),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
 		try {
-			const exampleEmbed = await makeEmbed(interaction)
+			const exampleEmbed = await makeEntry(interaction)
 			interaction.reply({ embeds: [ exampleEmbed ]})
 		} catch ( e: unknown ) {
 			if (e instanceof Error) {
