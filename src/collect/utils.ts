@@ -3,7 +3,7 @@ import { client } from "../index.js"
 
 export function writeProgress ( channels: number, threads: number, total: number ) {
 	// todo more stats
-	return `collecting messages from ${total} channels [${channels}/${total}]  [${threads} threads]`
+	return `collecting messages from ${total} channels [${channels}/${total}] [${threads} threads]`
 }
 
 export async function hasMessagePerms ( channel: TextChannel | VoiceChannel | NewsChannel ) {
@@ -19,7 +19,7 @@ export async function hasThreadPerms ( channel: TextChannel | ForumChannel ) {
 	try {
 		const { threads: activeThreads } = await channel.threads.fetchActive()
 		if (activeThreads.size > 0) await activeThreads.at(0)?.messages.fetch({ limit: 1 })
-	
+
 		const { threads: archivedThreads } = await channel.threads.fetchArchived()
 		if (archivedThreads.size > 0) await archivedThreads.at(0)?.messages.fetch({ limit: 1 })
 

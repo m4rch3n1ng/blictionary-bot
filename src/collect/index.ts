@@ -30,9 +30,9 @@ export default async function collectMessages ( guildId: string, message: Messag
 			if ((channel.type === 0 || channel.type === 15) && await hasThreadPerms(channel)) {
 				const { threads: activeThreads } = await channel.threads.fetchActive(false)
 				const archivedThreads = await fetchAllArchivedThreads(channel.threads)
-	
+
 				const allThreads = new Collection([ ...activeThreads, ...archivedThreads ])
-	
+
 				if (allThreads.size > 0) {
 					await Promise.all(
 						[ ...allThreads.values() ].map(async ( thread ) => {
