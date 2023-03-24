@@ -9,7 +9,6 @@ export const collect = {
 	name: "collect",
 	data: new SlashCommandBuilder().setName("collect").setDescription("collect all messages"),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
-		// if (!isMember(interaction) || !isChannel(interaction) ) return
 		if (!isMember(interaction) || !isChannel(interaction) || isThread(interaction)) return
 
 		if (!interaction.guild) return interaction.reply("error") // todo error
