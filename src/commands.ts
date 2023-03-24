@@ -2,12 +2,16 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js"
 import { rm } from "node:fs/promises"
 import collectMessages from "./collect/index.js"
 import { writeProgress, getTotalChannelCount } from "./collect/utils.js"
+import { isMember, isThread, isChannel } from "./utils.js"
 
 let collectIsRunning = new Map<string, boolean>
 export const collect = {
 	name: "collect",
 	data: new SlashCommandBuilder().setName("collect").setDescription("collect all messages"),
 	async execute ( interaction: ChatInputCommandInteraction ): Promise<any> {
+		// if (!isMember(interaction) || !isChannel(interaction) ) return
+		if (!isMember(interaction) || !isChannel(interaction) || isThread(interaction)) return
+
 		if (!interaction.guild) return interaction.reply("error") // todo error
 		if (collectIsRunning.get(interaction.guild.id)) return interaction.reply("already collecting on this server")
 		collectIsRunning.set(interaction.guild.id, true)
