@@ -8,7 +8,7 @@ import * as importCommands from "./commands.js"
 const token = process.env.DISCORD_BOT_TOKEN
 export const client = new Client({ intents: [ GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent ] })
 
-const commands = new Collection<string, typeof importCommands.collect>()
+const commands = new Collection<string, typeof importCommands[keyof typeof importCommands]>()
 Object.values(importCommands).forEach(( cmd ) => commands.set(cmd.name, cmd))
 
 client.on(Events.InteractionCreate, async ( interaction ) => {
@@ -22,6 +22,7 @@ client.on(Events.InteractionCreate, async ( interaction ) => {
 
 client.once(Events.ClientReady, async ( c ) => {
 	console.log(`logged in as ${c.user.tag}`)
+	if (!existsSync("entries")) console.log("\x1b[33mwarn\x1b[0m no entries found")
 	if (!existsSync(".tmp")) await mkdir(".tmp")
 })
 
