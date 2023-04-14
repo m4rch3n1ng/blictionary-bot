@@ -5,7 +5,7 @@ import $7z from "7zip-min"
 import { writeFile, mkdir, rm } from "node:fs/promises"
 import { join as joinPath } from "node:path"
 import { client } from "../index.js"
-import { __dirname } from "../utils.js"
+import { __rootname } from "../utils.js"
 import { writeProgress, hasMessagePerms, getTotalChannelCount, hasThreadPerms } from "./utils.js"
 dotenv.config({ path: ".env" })
 
@@ -14,7 +14,7 @@ export default async function collectMessages ( guildId: string, message: Messag
 	const channels = await guild.channels.fetch()
 
 	const totalChannels = await getTotalChannelCount(guildId)
-	const path = joinPath(__dirname, ".tmp", new Date().toISOString().replace(/:/g, "-"))
+	const path = joinPath(__rootname, ".tmp", new Date().toISOString().replace(/:/g, "-"))
 	const zipPath = `${path}.7z`
 
 	await mkdir(path)

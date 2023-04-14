@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 NAME="blictionary-bot"
 DATE=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
 

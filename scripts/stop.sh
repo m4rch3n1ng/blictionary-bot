@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 cwd=$(realpath .)
 
 NPM=$(ps aux | grep [n]pm)

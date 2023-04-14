@@ -2,7 +2,8 @@ import type { ChatInputCommandInteraction, GuildMemberRoleManager } from "discor
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 
-export const __dirname = dirname(dirname(fileURLToPath(import.meta.url)))
+const __dirname = dirname(fileURLToPath(import.meta.url))
+export const __rootname = dirname(__dirname)
 
 // is allow-listed with role
 export function isMember ( interaction: ChatInputCommandInteraction ): boolean {
