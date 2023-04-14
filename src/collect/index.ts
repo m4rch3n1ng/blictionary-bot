@@ -96,7 +96,7 @@ interface interCommand {
 }
 
 async function fetchAllArchivedThreads ( threadManager: ThreadManager, id?: AnyThreadChannel<boolean> ): Promise<Collection<string, AnyThreadChannel>> {
-	const { threads } = await threadManager.fetchArchived({ limit: 100, before: id })
+	const { threads } = id ? await threadManager.fetchArchived({ limit: 100, before: id }) : await threadManager.fetchArchived({ limit: 100 })
 
 	if (threads.size < 100) {
 		return threads
@@ -108,7 +108,7 @@ async function fetchAllArchivedThreads ( threadManager: ThreadManager, id?: AnyT
 }
 
 async function fetchAllMessages ( messageManager: MessageManager<true>, id?: string, name?: string ): Promise<(interMessage|interCommand)[]> {
-	const allCollection = await messageManager.fetch({ limit: 100, before: id })
+	const allCollection = id ? await messageManager.fetch({ limit: 100, before: id }) : await messageManager.fetch({ limit: 100 })
 
 	if (allCollection.size < 100) {
 		return format(allCollection)
